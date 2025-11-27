@@ -16,7 +16,7 @@ def get_db_connection():
         import ssl
         
         # Парсим URL вручную для pg8000
-        url = urlparse(DATABASE_URL)
+        url = urlparse(DABASE_URL)
         
         # Извлекаем компоненты
         database = url.path[1:]  # убираем первый слеш
@@ -25,8 +25,10 @@ def get_db_connection():
         host = url.hostname
         port = url.port or 5432  # стандартный порт PostgreSQL
         
-        # Создаем SSL контекст
+        # Создаем SSL контекст без проверки сертификата
         ssl_context = ssl.create_default_context()
+        ssl_context.check_hostname = False
+        ssl_context.verify_mode = ssl.CERT_NONE
         
         conn = pg8000.connect(
             database=database,
@@ -34,14 +36,15 @@ def get_db_connection():
             password=password,
             host=host,
             port=port,
-            ssl_context=ssl_context  # ← Правильный параметр для SSL
+            ssl_context=ssl_context
         )
         print("✅ Database connected successfully!")
         return conn
     except Exception as e:
         print(f"❌ Database connection error: {e}")
         return None
-
+    
+    
 # Создаем таблицу если её нет
 def init_db():
     conn = get_db_connection()
