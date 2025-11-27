@@ -109,6 +109,18 @@ def add_message():
         }), 201
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+    
+@app.route('/echo', methods=['POST'])
+def echo():
+    data = request.get_json()
+    if not data:
+        return jsonify({"error": "No JSON data provided"}), 400
+    
+    return jsonify({
+        "received_data": data,
+        "data_length": len(str(data)),
+        "status": "processed"
+    })
 
 # Инициализируем БД при запуске
 init_db()
