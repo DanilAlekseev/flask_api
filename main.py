@@ -28,11 +28,13 @@ def get_db_connection():
             user=user,
             password=password,
             host=host,
-            port=port
+            port=port,
+            ssl=True  # ← ДОБАВЬ ЭТУ СТРОЧКУ ДЛЯ SSL!
         )
+        print("✅ Database connected successfully!")
         return conn
     except Exception as e:
-        print(f"Database connection error: {e}")
+        print(f"❌ Database connection error: {e}")
         return None
 
 # Создаем таблицу если её нет
