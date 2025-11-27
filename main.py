@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify
-import psycopg2
+import pg8000
 import os
 from urllib.parse import urlparse
 
@@ -13,8 +13,23 @@ def get_db_connection():
         return None
     
     try:
-        # psycopg2 автоматически парсит URL
-        conn = psycopg2.connect(DATABASE_URL)
+        # Парсим URL вручную для pg8000
+        url = urlparse(DATABASE_URL)
+        
+        # Извлекаем компоненты
+        database = url.path[1:]  # убираем первый слеш
+        user = url.username
+        password = url.password
+        host = url.hostname
+        port = url.port or 5432  # стандартный порт PostgreSQL
+        
+        conn = pg8000.connect(
+            database=database,
+            user=user,
+            password=password,
+            host=host,
+            port=port
+        )
         return conn
     except Exception as e:
         print(f"Database connection error: {e}")
