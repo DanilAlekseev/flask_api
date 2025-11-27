@@ -145,6 +145,36 @@ def add_message():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+
+@app.route('/save', methods=['POST'])
+def save_message():
+    data = request.get_json()
+    if not data or 'message' not in data:
+        return jsonify({"error": "Message is required"}), 400
+    
+    conn = get_db_connection()
+    if not conn:
+        return jsonify({"error": "Database connection failed"}), 500
+    
+    try:
+        cursor = conn.cursor()
+        cursor.execute(
+            "INSERT INTO messages (text) VALUES (%s) RETURNING id",
+            (data['message'],)  # используем 'message' вместо 'text'
+        )
+        message_id = cursor.fetchone()[0]
+        conn.commit()
+        cursor.close()
+        conn.close()
+        
+        return jsonify({
+            "message": data['message'],  # возвращаем оригинальное сообщение
+            "status": "saved"
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
 # Инициализируем БД при запуске
 init_db()
 
