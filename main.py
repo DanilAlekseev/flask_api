@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify
-import pg8000
+import psycopg2
 import os
 from urllib.parse import urlparse
 
@@ -13,14 +13,8 @@ def get_db_connection():
         return None
     
     try:
-        url = urlparse(DATABASE_URL)
-        conn = pg8000.connect(
-            database=url.path[1:],
-            user=url.username,
-            password=url.password,
-            host=url.hostname,
-            port=url.port
-        )
+        # psycopg2 автоматически парсит URL
+        conn = psycopg2.connect(DATABASE_URL)
         return conn
     except Exception as e:
         print(f"Database connection error: {e}")
@@ -55,7 +49,23 @@ def hello():
 
 @app.route('/health')
 def health():
-    return jsonify({"status": "OK", "database": "connected"})
+    conn = get_db_connection()
+    db_status = "connected" if conn else "disconnected"
+    if conn:
+        conn.close()
+    return jsonify({"status": "OK", "database": db_status})
+
+@app.route('/echo', methods=['POST'])
+def echo():
+    data = request.get_json()
+    if not data:
+        return jsonify({"error": "No JSON data provided"}), 400
+    
+    return jsonify({
+        "received_data": data,
+        "data_length": len(str(data)),
+        "status": "processed"
+    })
 
 @app.route('/messages', methods=['GET'])
 def get_messages():
@@ -109,21 +119,10 @@ def add_message():
         }), 201
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-    
-@app.route('/echo', methods=['POST'])
-def echo():
-    data = request.get_json()
-    if not data:
-        return jsonify({"error": "No JSON data provided"}), 400
-    
-    return jsonify({
-        "received_data": data,
-        "data_length": len(str(data)),
-        "status": "processed"
-    })
 
 # Инициализируем БД при запуске
 init_db()
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host='0.0.0.0', port=port, debug=False)
