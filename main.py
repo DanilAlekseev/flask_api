@@ -16,7 +16,7 @@ def get_db_connection():
         import ssl
         
         # Парсим URL вручную для pg8000
-        url = urlparse(DABASE_URL)
+        url = urlparse(DATABASE_URL)
         
         # Извлекаем компоненты
         database = url.path[1:]  # убираем первый слеш
@@ -44,7 +44,7 @@ def get_db_connection():
         print(f"❌ Database connection error: {e}")
         return None
     
-    
+
 # Создаем таблицу если её нет
 def init_db():
     conn = get_db_connection()
